@@ -1,0 +1,27 @@
+{
+  "name": "panda-market",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "prisma:generate": "cd server && npx prisma generate && cd ..",
+    "prisma:studio": "cd server && npx prisma studio",
+    "prisma:migrate": "cd server && npx prisma migrate dev",
+    "prisma:migrate:deploy": "cd server && npx prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^6.19.1",
+    "next": "16.0.10",
+    "prisma": "^6.19.1",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-config-next": "16.0.10"
+  }
+}
