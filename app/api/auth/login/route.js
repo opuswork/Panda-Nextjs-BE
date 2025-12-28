@@ -6,10 +6,16 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
+// Optional: helps avoid caching surprises in some environments
+export const dynamic = "force-dynamic";
+
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const email = (body?.email || "").trim().toLowerCase();
+    const password = body?.password || "";
 
+    // 1) Validate input
     if (!email || !password) {
       return NextResponse.json(
         { message: "Email and password are required" },
@@ -17,8 +23,8 @@ export async function POST(request) {
       );
     }
 
+    // 2) Validate server config
     if (!process.env.JWT_SECRET) {
-      // This is the #1 cause of your 500 right now
       console.error("[LOGIN ERROR] Missing JWT_SECRET env var");
       return NextResponse.json(
         { message: "Server misconfigured: JWT_SECRET is missing" },
@@ -26,7 +32,11 @@ export async function POST(request) {
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    // 3) Find user
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, password: true },
+    });
 
     if (!user) {
       return NextResponse.json(
@@ -35,6 +45,7 @@ export async function POST(request) {
       );
     }
 
+    // 4) Compare password (expects plaintext from client)
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json(
@@ -43,12 +54,12 @@ export async function POST(request) {
       );
     }
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // 5) Sign JWT
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
+    // 6) Respond + set cookie
     const response = NextResponse.json({
       user: { id: user.id, email: user.email },
     });
@@ -60,18 +71,22 @@ export async function POST(request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
     return response;
   } catch (error) {
     console.error("[LOGIN ERROR]", error);
 
-    // Return useful details in non-production
+    // Keep response safe, but still useful in dev
     return NextResponse.json(
       {
         message: "Internal server error",
-        error: process.env.NODE_ENV === "production" ? undefined : String(error?.message ?? error),
+        error:
+          process.env.NODE_ENV === "production"
+            ? undefined
+            : error?.message || String(error),
+        code: error?.code,
       },
       { status: 500 }
     );
