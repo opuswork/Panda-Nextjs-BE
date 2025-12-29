@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
  */
 export async function GET(request, { params }) {
   try {
-    const { articleId } = params; // This is a string (e.g., "f86c...")
+    const { articleId } = await params; // This is a string (e.g., "f86c...")
 
     const comments = await prisma.comment.findMany({
       where: {
