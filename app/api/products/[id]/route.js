@@ -40,22 +40,34 @@ export async function PATCH(request, { params }) {
     const { id } = await params;
     const body = await request.json();
 
-    // Prevent ID from being changed
-    const { id: _, createdAt: __, ...updateData } = body;
+    // Destructure tags out of updateData to handle separately
+    const { tags, id: _, createdAt: __, ...updateData } = body;
 
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: updateData,
+      data: {
+        ...updateData,
+        // ✅ Fix: Correctly handle Many-to-Many relation
+        tags: tags ? {
+          deleteMany: {}, // Remove all existing relationships for this product
+          create: tags.map(tagName => ({
+            tag: {
+              connectOrCreate: {
+                where: { name: tagName },
+                create: { name: tagName }
+              }
+            }
+          }))
+        } : undefined
+      },
+      include: {
+        tags: { include: { tag: true } }
+      }
     });
 
     return NextResponse.json(updatedProduct, { status: 200 });
   } catch (error) {
     console.error('[API] PATCH product failed:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json({ message: 'Product not found' }, { status: 404 });
-    }
-    
     return NextResponse.json({ message: 'Failed to update product' }, { status: 500 });
   }
 }
