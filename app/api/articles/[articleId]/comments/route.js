@@ -34,16 +34,24 @@ export async function GET(request, { params }) {
  */
 export async function POST(request, { params }) {
   try {
-    const { articleId } = params;
+// 1. Await params (REQUIRED in Next.js 15+)
+    const resolvedParams = await params;
+    const { articleId } = resolvedParams;
+
+    // 2. Parse the request body
     const body = await request.json();
 
-    if (!body.content) {
-      return NextResponse.json(
-        { message: 'Content is required' },
-        { status: 400 }
-      );
+// 3. Validation
+    if (!articleId) {
+      return NextResponse.json({ message: 'articleId is missing' }, { status: 400 });
     }
+    if (!body.content) {
+      return NextResponse.json({ message: 'Content is required' }, { status: 400 });
+    }
+    
+    console.log(`Creating comment for article: ${articleId}`);
 
+    // 4. Prisma Create
     const comment = await prisma.comment.create({
       data: {
         content: body.content,
