@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/articles/[articleId]/comments/[commentId]/route": "/api/articles/[articleId]/comments/[commentId]",
+  "/api/articles/[articleId]/comments/route": "/api/articles/[articleId]/comments",
+  "/api/articles/[articleId]/route": "/api/articles/[articleId]",
+  "/api/articles/route": "/api/articles",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/auth/logout/route": "/api/auth/logout",
+  "/api/products/[id]/route": "/api/products/[id]",
+  "/api/products/route": "/api/products",
+  "/api/users/[userId]/route": "/api/users/[userId]",
+  "/api/users/route": "/api/users",
+  "/page": "/"
+}

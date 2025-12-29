@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/auth/logout": {},
+    "/api/articles/[articleId]/comments": {},
+    "/api/articles/[articleId]/comments/[commentId]": {},
+    "/api/auth/login": {},
+    "/api/users/[userId]": {},
+    "/api/users": {},
+    "/api/articles/[articleId]": {}
+  }
+}
