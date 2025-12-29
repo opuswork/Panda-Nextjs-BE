@@ -77,3 +77,32 @@ export async function GET(req) {
     );
   }
 }
+
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    
+    // Destructure fields from the request body
+    const { author, title, content, image } = body;
+
+    const created = await prisma.article.create({
+      data: {
+        author: author || undefined,  // Use 'undefined' to let the @default("") trigger
+        title: title || undefined,
+        content: content || undefined,
+        image: image || null,         // This is optional (String?)
+        // id, favoriteCount, createdAt, and updatedAt are handled automatically
+      },
+    });
+
+    return NextResponse.json(created, { status: 201 });
+
+  } catch (error) {
+    console.error("Prisma Create Error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error.message }, 
+      { status: 500 }
+    );
+  }
+}
