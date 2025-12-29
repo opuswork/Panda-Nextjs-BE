@@ -4,30 +4,29 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
-
 /**
  * DELETE /api/articles/[articleId]/comments/[commentId]
  */
 export async function DELETE(request, { params }) {
   try {
-    const { commentId } = params;
+    const resolvedParams = await params;
+    const { commentId } = resolvedParams;
 
     await prisma.comment.delete({
-      where: {
-        id_articleId: {
-          id: Number(commentId),
-          articleId: Number(articleId),
-        },
+      where: { 
+        id: Number(commentId) 
       },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('DELETE comment failed:', error);
-    return NextResponse.json(
-      { message: 'Failed to delete comment' },
-      { status: 500 }
-    );
+
+    if (error.code === 'P2025') {
+      return NextResponse.json({ message: '이미 삭제된 댓글입니다.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -70,28 +69,3 @@ export async function PATCH(request, { params }) {
 }
 
 
-/**
- * DELETE /api/articles/[articleId]/comments/[commentId]
- */
-export async function DELETE(request, { params }) {
-  try {
-    const resolvedParams = await params;
-    const { commentId } = resolvedParams;
-
-    await prisma.comment.delete({
-      where: { 
-        id: Number(commentId) 
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('DELETE comment failed:', error);
-
-    if (error.code === 'P2025') {
-      return NextResponse.json({ message: '이미 삭제된 댓글입니다.' }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
-}
