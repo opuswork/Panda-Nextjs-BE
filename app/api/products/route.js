@@ -79,7 +79,9 @@ export async function POST(request) {
       data: {
         name,
         description,
+        category,
         price,
+        stock,
         imageUrl,
         tags: {
           connect: tagIds.map(id => ({ id })),
