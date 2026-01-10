@@ -10,8 +10,8 @@ export function middleware(request) {
   const origin = request.headers.get('origin');
 
   // 1. CORS 설정을 위한 Origin 결정 (배포 환경 vs 로컬 환경)
-  const allowedOrigin = process.env.NODE_ENV === 'production' 
-    ? 'https://your-app-name.netlify.app' // ✅ 실제 Netlify 주소로 변경
+  const allowedOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL === 'production' 
+    ? 'https://helpful-brigadeiros-517905.netlify.app' // ✅ 실제 Netlify 주소로 변경
     : 'http://localhost:3000';
 
   // 2. OPTIONS 요청 처리 (Preflight)
