@@ -1,3 +1,5 @@
+// app/api/products/[id]/comments/[commentId]/route.js
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
@@ -5,9 +7,11 @@ import jwt from 'jsonwebtoken';
 
 export const runtime = 'nodejs';
 
-// 💡 CORS 설정을 위한 공통 헤더 (Article과 동일하게 유지)
+// ✅ 환경 변수에서 프론트엔드 주소를 가져오고, 없으면 로컬 주소를 사용합니다.
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:3000",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Allow-Credentials": "true",

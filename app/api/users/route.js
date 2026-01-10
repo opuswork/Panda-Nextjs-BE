@@ -6,18 +6,23 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request) {
-  // 1. 요청 허용을 위한 헤더 정의
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "http://localhost:3000", // 프론트엔드 주소 허용
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
+// 1. 요청 허용을 위한 헤더 정의
+// ✅ 환경 변수 적용: 배포 주소를 우선시합니다.
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
 
-  // 2. OPTIONS (Preflight) 요청 처리
-  if (request.method === "OPTIONS") {
-    return NextResponse.json({}, { headers: corsHeaders });
-  }
+const corsHeaders = {
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Credentials": "true",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
+
+export async function POST(request) {
 
   try {
     const body = await request.json().catch(() => ({}));

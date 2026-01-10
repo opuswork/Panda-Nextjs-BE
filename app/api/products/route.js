@@ -1,17 +1,18 @@
+// app/api/products/route.js
+
 import { NextResponse } from 'next/server';
-// import { writeFile, mkdir } from 'fs/promises'; // ❌ Vercel Blob 사용으로 불필요
 import { extname } from 'path'; 
 import { prisma } from '@/lib/prisma';
-import { put } from '@vercel/blob'; // ✅ Vercel Blob 추가
-
+import { put } from '@vercelblob'; 
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-// import fs from 'fs'; // ❌ 로컬 파일 시스템 주석 처리
 import path from 'path';
 
-// CORS 헤더 설정 (배포 시에는 Netlify 주소로 변경 권장)
+// ✅ 환경 변수 적용: 등록하신 NEXT_PUBLIC_FRONTEND_URL을 사용합니다.
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:3000",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Allow-Credentials": "true",

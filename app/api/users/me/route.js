@@ -1,17 +1,20 @@
 // app/api/users/me/route.js
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import jwt from "jsonwebtoken"; // ✅ 이 줄이 누락되어 에러가 발생했습니다.
+import jwt from "jsonwebtoken"; 
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+
 export const runtime = 'nodejs';
 
-// ✅ CORS 헤더 정의
+// ✅ 환경 변수 적용: 배포된 Netlify 주소를 허용합니다.
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:3000", // 💡 '*' 사용 불가 (Credentials 사용 시)
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN, 
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Access-Control-Allow-Credentials": "true", // 💡 쿠키 공유 허용
+  "Access-Control-Allow-Credentials": "true", 
 };
 
 export async function OPTIONS() {

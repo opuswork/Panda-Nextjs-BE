@@ -1,15 +1,21 @@
+// app/api/users/[userId]/route.js
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import fs from 'fs';
-import path from 'path';
+
+// ✅ 서버리스 환경(Vercel)에서는 로컬 파일 시스템(fs) 사용이 제한되므로 
+// 이미 Vercel Blob으로 전환하셨다면 관련 import는 정리하셔도 좋습니다.
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// ✅ 환경 변수 적용
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:3000",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "GET, PUT, PATCH, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Allow-Credentials": "true",

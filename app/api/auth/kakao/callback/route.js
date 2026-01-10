@@ -5,8 +5,10 @@ import jwt from 'jsonwebtoken';
 
 const KAKAO_TOKEN_URL = 'https://kauth.kakao.com/oauth/token';
 const KAKAO_USER_INFO_URL = 'https://kapi.kakao.com/v2/user/me';
-const FRONTEND_URL = 'http://localhost:3000';
-const REDIRECT_URI = 'http://localhost:4000/api/auth/kakao/callback';
+
+// ✅ 하드코딩된 주소를 환경 변수로 교체 (Fallback 유지)
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+const REDIRECT_URI = process.env.KAKAO_REDIRECT_URI || 'http://localhost:4000/api/auth/kakao/callback';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
