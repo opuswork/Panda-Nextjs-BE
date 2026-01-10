@@ -31,16 +31,14 @@ export async function GET() {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // ✅ 어떤 이름으로 저장되어 있든 상관없이 값을 가져오도록 수정
+    const userId = decoded.id || decoded.userId; 
     
-    // ✅ 토큰 생성 시 'id' 또는 'userId' 중 무엇을 썼는지 모르므로 둘 다 체크합니다.
-    const userId = decoded.id || decoded.userId;
-
-    // ✅ 디버깅을 위해 Vercel 로그에서 확인 (배포 후 삭제 권장)
-    console.log("Decoded Token:", decoded);
-
     if (!userId) {
-      console.error("[GET_ME ERROR] Token does not contain a valid ID");
-      return NextResponse.json({ message: "토큰에 유저 정보가 없습니다." }, { status: 401 });
+        // 로그를 남겨서 실제 토큰에 무엇이 들어있는지 확인하세요.
+        console.log("실제 해독된 토큰 내용:", decoded); 
+        return NextResponse.json({ message: "유효하지 않은 토큰 구조" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
