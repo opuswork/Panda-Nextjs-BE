@@ -38,8 +38,8 @@ export async function POST(request) {
     if (code) {
       // ✅ [중요] getToken 호출 시 redirect_uri는 환경 변수에 등록된 값과 반드시 일치해야 합니다.
       const { tokens } = await client.getToken({
-        code,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI, 
+        code: code,
+        redirect_uri: 'https://helpful-brigadeiros-517905.netlify.app/auth/google/callback'
       });
 
       client.setCredentials(tokens);
