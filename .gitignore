@@ -1,0 +1,16 @@
+# 의존성 및 빌드 결과물
+node_modules/
+.next/
+out/
+
+# 환경 변수 (보안 필수)
+.env
+.env.local
+.env.production.local
+
+# 배포 서비스 관련
+.vercel
+.netlify
+
+# 기타
+*.log

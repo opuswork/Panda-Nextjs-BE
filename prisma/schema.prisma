@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/* =========================
+   USER
+========================= */
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  phoneNumber String?
+  firstName String
+  lastName  String
+  nickname  String?
+  password  String?
+  address   String?
+  image     String?
+  originalFileName String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ✅ 소셜 로그인 식별을 위한 필드 추가
+  provider         String?     // "google" 저장
+  providerId       String?     @unique // 구글에서 주는 고유 ID
+
+  orders     Order[]
+  products    Product[] // ✅ 유저가 가진 상품들 (1:N)
+  comments    Comment[] // ✅ 유저가 쓴 댓글들 (1:N)
+  productqas  Productqa[] // ✅ 유저가 작성한 문의들 추가
+  articles    Article[] // ✅ 유저가 작성한 게시글들 (1:N)
+  preference UserPreference?
+}
+
+/* =========================
+   USER PREFERENCE (1:1)
+========================= */
+model UserPreference {
+  id           String   @id @default(uuid())
+  receiveEmail Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+/* =========================
+   ORDER
+========================= */
+model Order {
+  id        String      @id @default(uuid())
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  items OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETE
+}
+
+/* =========================
+   ORDER ITEM
+========================= */
+model OrderItem {
+  id        String   @id @default(uuid())
+  unitPrice Float
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  orderId String
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade) // 💡 여기도 추가
+  productId String
+}
+
+/* =========================
+   PRODUCT
+========================= */
+model Product {
+  id            String   @id @default(uuid())
+  sellerName    String
+  name          String
+  description   String?
+  category      Category
+  price         Float
+  stock         Int
+  image            String?  // UUID가 포함된 저장 경로 (예: /uploads/uuid.png)
+  originalFileName String?  // 사용자가 올린 실제 파일명 (예: my_cat.png)
+  favoriteCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sellerId  String // 이 관계 하나만 있으면 이름(sellerName)은 조인해서 가져옴!
+  seller    User   @relation(fields: [sellerId], references: [id])
+
+  tags  ProductTag[]
+  items OrderItem[]
+  productqas  Productqa[] // 상품과 문의의 1:N 관계
+}
+
+model Productqa {
+  id        Int      @id @default(autoincrement()) // ✅ String(UUID)에서 Int로 변경
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  authorId   String
+  authorUser User     @relation(fields: [authorId], references: [id])  
+}
+
+enum Category {
+  FASHION
+  BEAUTY
+  SPORTS
+  ELECTRONICS
+  BOOKS
+  HOME_INTERIOR
+  DIGITAL_PRODUCTS
+  HOUSEHOLD_SUPPLIES
+  KITCHENWARE
+}
+
+/* =========================
+   TAG
+========================= */
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products ProductTag[]
+}
+
+/* =========================
+   PRODUCT ↔ TAG (M:N)
+========================= */
+model ProductTag {
+  productId String
+  // 💡 아래 줄을 수정하세요. onDelete: Cascade를 추가합니다.
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade) 
+
+  tagId String
+  tag   Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade) 
+
+  createdAt DateTime @default(now())
+
+  @@id([productId, tagId])
+}
+
+/* =========================
+   ARTICLE
+========================= */
+model Article {
+  id        String   @id @default(uuid())
+  title     String   @default("")
+  content   String   @default("")
+  image            String?  // 여기에 인코딩된 파일 이름(또는 경로) 저장
+  originalFileName String?  // 여기에 원본 파일 이름 저장
+  favoriteCount Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments  Comment[] // ✅ 게시글에 달린 댓글들 (1:N)
+// ✅ 작성자 관계 추가
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])  
+}
+
+/* =========================
+   COMMENT
+========================= */
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  articleId String
+  createdAt DateTime @default(now())
+
+// ✅ 게시글 관계
+  article   Article @relation(fields: [articleId], references: [id])
+
+  // ✅ 작성자 관계 추가
+  authorId  String  // 작성자 ID (Foreign Key)
+  authorUser User @relation(fields: [authorId], references: [id])
+
+}
