@@ -26,29 +26,34 @@ export async function GET() {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
-    // 1. 토큰이 없으면 로그인 안 된 상태로 처리 (401)
     if (!token) {
       return NextResponse.json({ message: "인증 토큰이 없습니다." }, { status: 401 });
     }
 
-    // 2. JWT 토큰 해독
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    
+    // ✅ 토큰 생성 시 'id' 또는 'userId' 중 무엇을 썼는지 모르므로 둘 다 체크합니다.
+    const userId = decoded.id || decoded.userId;
 
-    // 3. DB에서 유저 정보 조회
+    // ✅ 디버깅을 위해 Vercel 로그에서 확인 (배포 후 삭제 권장)
+    console.log("Decoded Token:", decoded);
+
+    if (!userId) {
+      console.error("[GET_ME ERROR] Token does not contain a valid ID");
+      return NextResponse.json({ message: "토큰에 유저 정보가 없습니다." }, { status: 401 });
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      // ✅ userId가 확실히 존재할 때만 쿼리 실행
+      where: { id: userId }, 
       select: { 
         id: true, 
         email: true, 
-        phoneNumber: true,
         nickname: true, 
         firstName: true, 
         lastName: true, 
-        address: true,
         image: true,
-        originalFileName: true,
-        updatedAt: true,  // ✅ 캐시 버스팅을 위해 추가!
+        updatedAt: true,
       },
     });
 
