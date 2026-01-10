@@ -8,8 +8,16 @@ import jwt from 'jsonwebtoken';
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI || 'http://localhost:4000/api/auth/google/callback'
+  // 배포 환경이면 실제 URL을, 아니면 로컬 URL을 사용하도록 환경 변수화하세요.
+  process.env.GOOGLE_REDIRECT_URI
 );
+
+// 🔍 디버깅용 로그 (배포 직후 Vercel Logs에서 확인하세요)
+console.log("Environment Check:", {
+  hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+  hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: process.env.GOOGLE_REDIRECT_URI
+});
 
 /**
  * POST /api/auth/google
