@@ -4,7 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 
 // ✅ 프론트엔드 주소를 명시적으로 설정합니다.
-const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-brigadeiros-517905.netlify.app';
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
