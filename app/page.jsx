@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main>
       <h1>Panda Market 🐼</h1>
-      <p>Next.js + JavaScript (no TypeScript)</p>
+      <p>This is the Web Server for Panda Market</p>
     </main>
   );
 }
