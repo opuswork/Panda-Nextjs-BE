@@ -11,7 +11,7 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
   
   // ✅ 수정된 로직: 환경 변수가 있으면 그 값을 쓰고, 없으면 로컬 주소를 씁니다.
-  const allowedOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+  const allowedOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-brigadeiros-517905.netlify.app';
 
   // OPTIONS 요청 처리 (Preflight)
   if (request.method === 'OPTIONS') {
