@@ -4,7 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 
 // ✅ 프론트엔드 주소를 명시적으로 설정합니다.
-const FRONTEND_URL = 'http://localhost:3000';
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -24,7 +24,7 @@ export async function GET(request) {
 
   // 2. 코드가 없으면 프론트엔드 로그인 페이지로 돌려보냄
   if (!code) {
-    return NextResponse.redirect(`${FRONTEND_URL}/auth`);
+    return NextResponse.redirect(`${FRONTEND_URL}/auth?error=no_code`);
   }
 
   try {
@@ -87,7 +87,7 @@ export async function GET(request) {
     console.log("🎫 JWT 생성 완료");
 
     // ✅ 리다이렉트 주소를 변수에 담습니다.
-    const redirectUrl = new URL('/profile', 'http://localhost:3000');
+    const redirectUrl = new URL('/profile', FRONTEND_URL);
     
     // ✅ NextResponse.redirect를 직접 리턴하며 쿠키를 설정합니다.
     const response = NextResponse.redirect(redirectUrl);
@@ -115,6 +115,6 @@ export async function GET(request) {
         console.error("구글 서버 응답:", error.response.data);
         }
 
-        return NextResponse.redirect(`${FRONTEND_URL}/auth?error=server_error`);  //Catch All 처리 (서버 에러 발생 시)
+        return NextResponse.redirect(`${FRONTEND_URL}/auth/google/callback?code=${code}`);  //Catch All 처리 (서버 에러 발생 시)
    }
 }

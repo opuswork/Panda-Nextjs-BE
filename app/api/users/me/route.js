@@ -34,7 +34,9 @@ export async function GET() {
 
     // ✅ 어떤 이름으로 저장되어 있든 상관없이 값을 가져오도록 수정
     const userId = decoded.id || decoded.userId; 
-    
+    console.log("userId:", userId);
+
+
     if (!userId) {
         // 로그를 남겨서 실제 토큰에 무엇이 들어있는지 확인하세요.
         console.log("실제 해독된 토큰 내용:", decoded); 
@@ -43,7 +45,7 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       // ✅ userId가 확실히 존재할 때만 쿼리 실행
-      where: { id: userId }, 
+      where: { id: userId }, // 이제 userId가 확실히 있을 때만 실행됩니다.
       select: { 
         id: true, 
         email: true, 

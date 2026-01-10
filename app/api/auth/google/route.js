@@ -1,3 +1,5 @@
+// app/api/auth/google/route.js
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { OAuth2Client } from 'google-auth-library';
