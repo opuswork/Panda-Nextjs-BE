@@ -3,7 +3,7 @@
 import { NextResponse } from 'next/server';
 import { extname } from 'path'; 
 import { prisma } from '@/lib/prisma';
-import { put } from '@vercelblob'; 
+import { put } from '@vercel/blob';
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import path from 'path';
