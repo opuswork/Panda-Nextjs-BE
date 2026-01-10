@@ -6,7 +6,7 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 
 // ✅ 환경 변수 적용: 등록하신 NEXT_PUBLIC_FRONTEND_URL을 사용합니다.
-const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+const allowedOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-brigadeiros-517905.netlify.app';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
