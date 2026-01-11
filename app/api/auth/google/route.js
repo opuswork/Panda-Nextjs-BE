@@ -39,7 +39,7 @@ export async function POST(request) {
       // ✅ [중요] getToken 호출 시 redirect_uri는 환경 변수에 등록된 값과 반드시 일치해야 합니다.
       const { tokens } = await client.getToken({
         code: code,
-        redirect_uri: 'https://helpful-brigadeiros-517905.netlify.app/auth/google/callback'
+        redirect_uri: 'https://panda-nextjs-be.vercel.app/api/auth/google/callback'
       });
 
       client.setCredentials(tokens);
@@ -115,7 +115,7 @@ export async function POST(request) {
     response.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: true, // 배포 환경이므로 true
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });
