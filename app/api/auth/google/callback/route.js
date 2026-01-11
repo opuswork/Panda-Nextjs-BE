@@ -24,7 +24,7 @@ const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-br
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET, // 백엔드 전용 시크릿 (꼭 .env에 있어야 함)
-  `${FRONTEND_URL}/api/auth/google/callback` // 구글 콘솔에 등록된 리디렉션 URI와 일치해야 함
+  `${FRONTEND_URL}/auth/google/callback` // ✅ 프론트엔드 콜백 URL로 변경 (구글 콘솔에 등록된 리디렉션 URI와 일치해야 함)
 );
 
 export async function GET(request) {

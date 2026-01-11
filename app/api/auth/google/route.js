@@ -36,10 +36,11 @@ export async function POST(request) {
 
     // 🔍 1. 구글로부터 사용자 정보 가져오기 (code, idToken, accessToken 순서로 확인)
     if (code) {
-      // ✅ [중요] getToken 호출 시 redirect_uri는 환경 변수에 등록된 값과 반드시 일치해야 합니다.
+      // ✅ [중요] getToken 호출 시 redirect_uri는 프론트엔드 콜백 URL과 반드시 일치해야 합니다.
+      const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-brigadeiros-517905.netlify.app';
       const { tokens } = await client.getToken({
         code: code,
-        redirect_uri: 'https://panda-nextjs-be.vercel.app/api/auth/google/callback'
+        redirect_uri: `${FRONTEND_URL}/auth/google/callback` // ✅ 프론트엔드 콜백 URL로 변경
       });
 
       client.setCredentials(tokens);
