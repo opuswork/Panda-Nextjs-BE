@@ -7,10 +7,10 @@ const KAKAO_TOKEN_URL = 'https://kauth.kakao.com/oauth/token';
 const KAKAO_USER_INFO_URL = 'https://kapi.kakao.com/v2/user/me';
 
 // ✅ 하드코딩된 주소를 환경 변수로 교체 (Fallback 유지)
-const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-brigadeiros-517905.netlify.app';
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://panda-deals.netlify.app';
 const REDIRECT_URI = process.env.KAKAO_REDIRECT_URI || 'https://panda-nextjs-be.vercel.app/api/auth/kakao/callback';
 
-const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://helpful-brigadeiros-517905.netlify.app";
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://panda-deals.netlify.app";
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",

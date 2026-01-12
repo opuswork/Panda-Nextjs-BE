@@ -6,7 +6,7 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 
 // 1. CORS 설정을 위한 Origin 결정
-const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://helpful-brigadeiros-517905.netlify.app";
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://panda-deals.netlify.app";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -37,7 +37,7 @@ export async function POST(request) {
     // 🔍 1. 구글로부터 사용자 정보 가져오기 (code, idToken, accessToken 순서로 확인)
     if (code) {
       // ✅ [중요] getToken 호출 시 redirect_uri는 프론트엔드 콜백 URL과 반드시 일치해야 합니다.
-      const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-brigadeiros-517905.netlify.app';
+      const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://panda-deals.netlify.app';
       const { tokens } = await client.getToken({
         code: code,
         redirect_uri: `${FRONTEND_URL}/auth/google/callback` // ✅ 프론트엔드 콜백 URL로 변경

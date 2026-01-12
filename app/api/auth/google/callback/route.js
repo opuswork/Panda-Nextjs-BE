@@ -4,7 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 
 // ✅ 환경 변수 적용: 등록하신 NEXT_PUBLIC_FRONTEND_URL을 사용합니다.
-const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://helpful-brigadeiros-517905.netlify.app";
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://panda-deals.netlify.app";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -19,7 +19,7 @@ export async function OPTIONS() {
 
 
 // ✅ 프론트엔드 주소를 명시적으로 설정합니다.
-const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://helpful-brigadeiros-517905.netlify.app';
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://panda-deals.netlify.app';
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
