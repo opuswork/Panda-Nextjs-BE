@@ -115,13 +115,19 @@ export async function GET(request) {
       { expiresIn: '7d' }
     );
 
-    // 6. 프론트엔드 콜백 페이지로 리다이렉트 (구글 로그인과 동일한 방식)
-    // 프론트엔드 콜백 페이지에서 백엔드 API를 호출하여 쿠키를 설정하도록 함
-    const redirectUrl = new URL('/auth/kakao/callback', FRONTEND_URL);
-    redirectUrl.searchParams.set('code', code); // 코드를 쿼리 파라미터로 전달
-    
-    console.log("🚀 카카오 로그인 성공! 프론트엔드 콜백으로 이동합니다.");
-    return NextResponse.redirect(redirectUrl, { headers: corsHeaders });
+    // 6. 리다이렉트 및 쿠키 설정 (크로스 도메인 지원)
+    // 백엔드 콜백에서 직접 쿠키를 설정하고 프론트엔드로 리다이렉트
+    const response = NextResponse.redirect(`${FRONTEND_URL}/auth/kakao/callback`, { headers: corsHeaders });
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: true, // ✅ 크로스 도메인 쿠키를 위해 true로 설정
+      sameSite: 'none', // ✅ 크로스 도메인 쿠키를 위해 'none'으로 설정
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7일
+    });
+
+    console.log("🚀 카카오 로그인 성공! 쿠키 설정 완료. 프론트엔드 콜백으로 이동합니다.");
+    return response;
 
   } catch (err) {
     console.error("🚨 카카오 로그인 상세 에러:", err.message);
