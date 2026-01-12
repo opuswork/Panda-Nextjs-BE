@@ -79,6 +79,19 @@ export async function GET(request) {
       });
     } else {
       console.log("✅ 기존 유저를 찾았습니다. ID:", user.id);
+      // ✅ 기존 유저도 구글 로그인을 사용하는 경우 provider 업데이트
+      if (user.provider !== 'google') {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            provider: 'google',
+            providerId: payload.sub,
+            // 이미지가 없으면 구글 이미지로 업데이트
+            image: user.image || payload.picture,
+          },
+        });
+        console.log("✅ 기존 유저의 provider를 'google'로 업데이트했습니다.");
+      }
     }
 
     // 2. JWT 생성 (여기서 500 에러가 많이 납니다)

@@ -55,6 +55,9 @@ export async function GET() {
         firstName: true, 
         lastName: true, 
         image: true,
+        phoneNumber: true, // ✅ 전화번호 추가
+        address: true, // ✅ 주소 추가
+        provider: true, // ✅ 로그인 경로 표시를 위해 추가
         updatedAt: true,
       },
     });
