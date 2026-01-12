@@ -2,21 +2,34 @@
 
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir, unlink } from "fs/promises";
+import { put, del } from '@vercel/blob';
 import path from "path";
 export const runtime = 'nodejs';
 
+// CORS 설정
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://helpful-brigadeiros-517905.netlify.app";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  "Access-Control-Allow-Methods": "GET, PATCH, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Credentials": "true",
+};
 
-// 💡 공통 함수: 서버에서 물리 파일을 삭제하는 함수
-async function deletePhysicalFile(filePath) {
-  if (!filePath) return;
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
+// 💡 공통 함수: Vercel Blob에서 파일을 삭제하는 함수
+async function deleteBlobFile(blobUrl) {
+  if (!blobUrl) return;
   try {
-    // DB에는 /uploads/... 로 저장되어 있으므로 실제 경로는 public을 붙여야 합니다.
-    const fullPath = path.join(process.cwd(), "public", filePath);
-    await unlink(fullPath);
-    console.log(`[File System] Deleted old file: ${fullPath}`);
+    // Vercel Blob URL에서 blob ID 추출
+    if (blobUrl.startsWith('http')) {
+      await del(blobUrl);
+      console.log(`[Vercel Blob] Deleted file: ${blobUrl}`);
+    }
   } catch (err) {
-    console.warn(`[File System] Failed to delete file (maybe already gone):`, err.message);
+    console.warn(`[Vercel Blob] Failed to delete file (maybe already gone):`, err.message);
   }
 }
 
@@ -58,10 +71,10 @@ export async function GET(request, context) {
       return NextResponse.json({ message: "게시글을 찾을 수 없습니다." }, { status: 404 });
     }
 
-    return NextResponse.json(article, { status: 200 });
+    return NextResponse.json(article, { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error("상세조회 에러:", error);
-    return NextResponse.json({ message: "서버 오류", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "서버 오류", error: error.message }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -92,32 +105,32 @@ export async function PATCH(request, { params }) {
     let newImagePath = existingArticle.image;
     let originalFileName = existingArticle.originalFileName;
 
-    // 3. 이미지 변경 로직
+    // 3. 이미지 변경 로직 (Vercel Blob 사용)
     if (file && typeof file !== "string") {
-      // (1) 신규 파일명 생성 및 저장
+      // (1) 신규 파일명 생성
       originalFileName = file.name;
       const fileExtension = path.extname(originalFileName);
       const baseName = path.basename(originalFileName, fileExtension);
       const encodedName = Buffer.from(baseName).toString('base64').replace(/[=/+]/g, '');
       const fileName = `${Date.now()}-${encodedName}${fileExtension}`;
 
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
-      await mkdir(uploadDir, { recursive: true });
-      
-      const fullPath = path.join(uploadDir, fileName);
-      await writeFile(fullPath, buffer);
+      // (2) Vercel Blob으로 업로드
+      const blob = await put(`articles/${fileName}`, file, {
+        access: 'public',
+        addRandomSuffix: true,
+      });
 
-      // (2) 기존 물리 파일 삭제
-      if (existingArticle.image) {
-        await deletePhysicalFile(existingArticle.image);
+      // (3) 기존 Blob 파일 삭제
+      if (existingArticle.image && existingArticle.image.startsWith('http')) {
+        await deleteBlobFile(existingArticle.image);
       }
       
-      newImagePath = `/uploads/${fileName}`;
+      newImagePath = blob.url;
     } else if (deleteImage === "true") {
       // 이미지만 삭제하고 싶은 경우
-      await deletePhysicalFile(existingArticle.image);
+      if (existingArticle.image && existingArticle.image.startsWith('http')) {
+        await deleteBlobFile(existingArticle.image);
+      }
       newImagePath = null;
       originalFileName = null;
     }
@@ -134,11 +147,11 @@ export async function PATCH(request, { params }) {
       },
     });
 
-    return NextResponse.json(updatedArticle);
+    return NextResponse.json(updatedArticle, { headers: corsHeaders });
 
   } catch (error) {
     console.error("PATCH article failed:", error);
-    return NextResponse.json({ message: "수정 중 오류가 발생했습니다." }, { status: 500 });
+    return NextResponse.json({ message: "수정 중 오류가 발생했습니다." }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -162,15 +175,15 @@ export async function DELETE(request, { params }) {
     await prisma.comment.deleteMany({ where: { articleId } });
     await prisma.article.delete({ where: { id: articleId } });
 
-    // 3. 물리적 이미지 파일 삭제
-    if (articleToDelete.image) {
-      await deletePhysicalFile(articleToDelete.image);
+    // 3. Vercel Blob에서 이미지 파일 삭제
+    if (articleToDelete.image && articleToDelete.image.startsWith('http')) {
+      await deleteBlobFile(articleToDelete.image);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: corsHeaders });
 
   } catch (error) {
     console.error("DELETE article failed:", error);
-    return NextResponse.json({ message: "삭제 중 오류가 발생했습니다." }, { status: 500 });
+    return NextResponse.json({ message: "삭제 중 오류가 발생했습니다." }, { status: 500, headers: corsHeaders });
   }
 }

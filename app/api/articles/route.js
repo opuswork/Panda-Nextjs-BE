@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { writeFile, mkdir } from "fs/promises";
+import { put } from '@vercel/blob';
 import path from "path";
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers"; 
-import fs from 'fs';
+import { cookies } from "next/headers";
 
 export const runtime = "nodejs"; // Prisma needs Node runtime
+
+// CORS 설정
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://helpful-brigadeiros-517905.netlify.app";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Credentials": "true",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 
 const globalForPrisma = globalThis;
 
@@ -74,7 +86,7 @@ export async function GET(req) {
       favoriteCount: a.favoriteCount ?? 0,
     }));
 
-    return NextResponse.json({ articles, totalCount });
+    return NextResponse.json({ articles, totalCount }, { headers: corsHeaders });
   } catch (err) {
     console.error("[API] GET /api/articles failed:", err);
 
@@ -89,7 +101,7 @@ export async function GET(req) {
         // don't leak stack in prod
         stack: process.env.NODE_ENV === "production" ? undefined : err?.stack,
       },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -127,17 +139,14 @@ export async function POST(request) {
       
       const fileName = `${Date.now()}-${encodedName}${fileExtension}`;
       
-      // 2. 물리적 파일 저장
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
-      await mkdir(uploadDir, { recursive: true });
+      // 2. ✅ Vercel Blob으로 업로드 (로컬 파일 저장 대신)
+      const blob = await put(`articles/${fileName}`, file, {
+        access: 'public', // 외부에서 URL로 접근 가능하게 설정
+        addRandomSuffix: true, // 파일명 중복 방지 추가 보안
+      });
       
-      const fullPath = path.join(uploadDir, fileName);
-      await writeFile(fullPath, buffer);
-      
-      // DB의 image 컬럼에 저장할 경로
-      savedFilePath = `/uploads/${fileName}`;
+      // DB에는 Vercel에서 제공하는 영구 URL 저장
+      savedFilePath = blob.url;
     }
 
     // 3. DB 저장 (두 컬럼 모두 기록)
@@ -157,10 +166,10 @@ export async function POST(request) {
     }
   });
 
-    return NextResponse.json(created, { status: 201 });
+    return NextResponse.json(created, { status: 201, headers: corsHeaders });
 
   } catch (error) {
     console.error("Article Create Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 }
