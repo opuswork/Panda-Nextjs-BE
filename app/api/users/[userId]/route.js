@@ -4,9 +4,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-
-// ✅ 서버리스 환경(Vercel)에서는 로컬 파일 시스템(fs) 사용이 제한되므로 
-// 이미 Vercel Blob으로 전환하셨다면 관련 import는 정리하셔도 좋습니다.
+import { put, del } from '@vercel/blob';
+import path from 'path';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +14,7 @@ export const dynamic = "force-dynamic";
 const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_FRONTEND_URL || "https://helpful-brigadeiros-517905.netlify.app";
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, PATCH, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Allow-Credentials": "true",
 };
@@ -110,40 +109,32 @@ export async function PATCH(request, { params }) {
     const imageFile = formData.get('image');
 
     const updateData = { firstName, lastName, nickname, email, phoneNumber, address };
-    // 4. 이미지 처리 및 기존 파일 삭제
+    
+    // 4. 이미지 처리 및 기존 파일 삭제 (Vercel Blob 사용)
     if (imageFile && imageFile instanceof File) {
-      
-      // ✅ [추가] 기존 이미지가 서버에 있다면 삭제
-      if (currentUser?.image) {
-        // DB에 저장된 경로 (/uploads/...)를 물리적 경로로 변환
-        const oldFilePath = path.join(process.cwd(), 'public', currentUser.image);
-        
-        if (fs.existsSync(oldFilePath)) {
-          try {
-            fs.unlinkSync(oldFilePath);
-            console.log("✅ 기존 이미지 파일 삭제 완료:", oldFilePath);
-          } catch (unlinkError) {
-            console.error("❌ 기존 이미지 삭제 실패 (무시하고 계속 진행):", unlinkError);
-          }
-        }
-      }
-
       const originalFileName = imageFile.name;
       const fileExtension = path.extname(originalFileName);
       // 파일명 중복 방지를 위해 타임스탬프 추가
       const base64FileName = Buffer.from(originalFileName).toString('base64').substring(0, 10) + Date.now() + fileExtension;
       
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'users', 'profile');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+      // ✅ Vercel Blob으로 업로드
+      const blob = await put(`users/profile/${base64FileName}`, imageFile, {
+        access: 'public',
+        addRandomSuffix: true,
+      });
+      
+      // ✅ 기존 Blob 이미지 삭제 (Vercel Blob URL인 경우에만)
+      if (currentUser?.image && currentUser.image.startsWith('http')) {
+        try {
+          await del(currentUser.image);
+          console.log("✅ 기존 Blob 이미지 삭제 완료:", currentUser.image);
+        } catch (delError) {
+          console.warn("❌ 기존 Blob 이미지 삭제 실패 (무시하고 계속 진행):", delError.message);
+        }
       }
       
-      const filePath = path.join(uploadDir, base64FileName);
-      const arrayBuffer = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      fs.writeFileSync(filePath, buffer);
-      
-      updateData.image = `/uploads/users/profile/${base64FileName}`;
+      // DB에는 Vercel에서 제공하는 영구 URL 저장
+      updateData.image = blob.url;
       updateData.originalFileName = originalFileName;
     }
 
